@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # 创建非root用户
-RUN groupadd -r whisperx && useradd -r -g whisperx whisperx
+RUN groupadd -r whisperx && useradd -r -g whisperx -m whisperx
 
 # 复制项目文件
 COPY pyproject.toml uv.lock README.md ./
