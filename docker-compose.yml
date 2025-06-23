@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  whisperx-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: whisperx-api
+    ports:
+      - "8000:8000"
+    environment:
+      # 服务器配置
+      HOST: 0.0.0.0
+      PORT: 8000
+
+      # HuggingFace Token (用于说话人识别)
+      # 请在 .env 文件中设置或直接在此处配置
+      HF_TOKEN: ${HF_TOKEN:-}
+
+      # 文件配置
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-100}
+
+      # 日志配置
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DEBUG: ${DEBUG:-false}
+
+    volumes:
+      # 可选：持久化模型缓存（如果需要频繁重建容器）
+      - whisperx_models:/home/whisperx/.cache
+
+      # 可选：挂载日志目录
+      - ./logs:/app/logs
+
+      # 可选：挂载临时文件目录
+      - ./temp:/app/temp
+
+    restart: unless-stopped
+
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
+    # 如果使用 CUDA
+    # runtime: nvidia
+    # environment:
+    #   NVIDIA_VISIBLE_DEVICES: all
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  whisperx_models:
+    driver: local
