@@ -1,64 +1,7 @@
 # =====================================
-# CUDA 版本：多阶段构建 - 模型下载阶段
+# CUDA 版本：生产环境构建
 # =====================================
-FROM nvidia/cuda:11.8-devel-ubuntu22.04 AS model-downloader
-
-# 设置环境变量
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV DEBIAN_FRONTEND=noninteractive
-
-# 安装系统依赖
-RUN apt-get update && apt-get install -y \
-    python3.11 \
-    python3.11-pip \
-    python3.11-dev \
-    git \
-    wget \
-    curl \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# 创建符号链接
-RUN ln -s /usr/bin/python3.11 /usr/bin/python
-RUN ln -s /usr/bin/pip3 /usr/bin/pip
-
-# 安装 uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-
-# 设置工作目录
-WORKDIR /app
-
-# 复制项目配置文件
-COPY pyproject.toml uv.lock README.md ./
-
-# 安装 Python 依赖（使用 uv）
-# 注意：PyTorch CUDA 版本需要特殊处理，先安装基础依赖
-RUN uv sync --frozen --no-dev
-
-# 安装 PyTorch CUDA 版本（需要特定版本和源）
-RUN uv pip install \
-    torch==2.1.0+cu118 \
-    torchaudio==2.1.0+cu118 \
-    --index-url https://download.pytorch.org/whl/cu118
-
-# 预下载 WhisperX 模型（使用 CUDA）
-RUN uv run python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
-RUN uv run python -c "import whisperx; model = whisperx.load_model('large-v3-turbo', 'cuda' if torch.cuda.is_available() else 'cpu', compute_type='float16')"
-
-# 预下载对齐模型（常用语言）
-RUN uv run python -c "import whisperx; whisperx.load_align_model('en', 'cuda' if torch.cuda.is_available() else 'cpu')" || true
-RUN uv run python -c "import whisperx; whisperx.load_align_model('zh', 'cuda' if torch.cuda.is_available() else 'cpu')" || true
-RUN uv run python -c "import whisperx; whisperx.load_align_model('ja', 'cuda' if torch.cuda.is_available() else 'cpu')" || true
-RUN uv run python -c "import whisperx; whisperx.load_align_model('ko', 'cuda' if torch.cuda.is_available() else 'cpu')" || true
-RUN uv run python -c "import whisperx; whisperx.load_align_model('es', 'cuda' if torch.cuda.is_available() else 'cpu')" || true
-RUN uv run python -c "import whisperx; whisperx.load_align_model('fr', 'cuda' if torch.cuda.is_available() else 'cpu')" || true
-RUN uv run python -c "import whisperx; whisperx.load_align_model('de', 'cuda' if torch.cuda.is_available() else 'cpu')" || true
-
-# =====================================
-# CUDA 版本：生产环境构建阶段
-# =====================================
-FROM nvidia/cuda:11.8-runtime-ubuntu22.04 AS production
+FROM nvidia/cuda:11.8-runtime-ubuntu22.04
 
 # 设置环境变量
 ENV PYTHONUNBUFFERED=1
@@ -85,6 +28,8 @@ RUN apt-get update && apt-get install -y \
     wget \
     # OpenMP 支持
     libgomp1 \
+    # Git（用于运行时下载模型）
+    git \
     # CUDA 相关库
     libnvidia-compute-470 \
     && rm -rf /var/lib/apt/lists/* \
@@ -113,9 +58,6 @@ RUN uv pip install \
     torch==2.1.0+cu118 \
     torchaudio==2.1.0+cu118 \
     --index-url https://download.pytorch.org/whl/cu118
-
-# 从模型下载阶段复制预下载的模型
-COPY --from=model-downloader /root/.cache /home/whisperx/.cache
 
 # 创建必要的目录
 RUN mkdir -p /app/temp /app/logs
