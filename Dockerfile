@@ -32,9 +32,6 @@ RUN apt-get update && apt-get install -y \
 # 安装 uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# 创建非root用户
-RUN groupadd -r whisperx && useradd -r -g whisperx -m whisperx
-
 # 复制项目文件
 COPY pyproject.toml uv.lock README.md ./
 COPY main.py ./
@@ -45,12 +42,6 @@ RUN uv sync --frozen --no-dev
 
 # 创建必要的目录
 RUN mkdir -p /app/temp /app/logs
-
-# 设置权限
-RUN chown -R whisperx:whisperx /app /home/whisperx
-
-# 切换到非root用户
-USER whisperx
 
 # 暴露端口
 EXPOSE 8000
