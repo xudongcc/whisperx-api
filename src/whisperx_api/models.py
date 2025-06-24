@@ -52,7 +52,7 @@ class TranscriptionFormParams(BaseModel):
         le=20
     )
     chunk_size: int = Field(
-        default=6,
+        default=30,
         description="音频分块大小（秒）",
         ge=1,
         le=64
@@ -133,7 +133,7 @@ class TranscriptionRequest(BaseModel):
         description="最多说话人数量"
     )
     chunk_size: int = Field(
-        default=6,
+        default=30,
         description="音频分块大小（秒）"
     )
 

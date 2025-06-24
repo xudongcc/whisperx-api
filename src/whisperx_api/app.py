@@ -18,7 +18,7 @@ from .config import (
 from .models import (
     TranscriptionFormParams, TranscriptionResponse, VerboseTranscriptionResponse
 )
-from .services import load_whisper_model, load_diarize_model, is_whisper_model_loaded, is_diarize_model_loaded
+from .services import load_whisper_model, load_diarize_model, is_whisper_model_loaded, is_diarize_model_loaded, load_align_model, clear_gpu_cache, get_cached_languages, get_gpu_memory_info
 from .validators import validate_transcription_params, validate_audio_file, validate_file_size
 
 logger = logging.getLogger(__name__)
@@ -90,7 +90,9 @@ async def health_check():
         "diarization_model_loaded": is_diarize_model_loaded(),
         "hf_token_available": HF_TOKEN is not None,
         "device": device,
-        "compute_type": get_compute_type()
+        "compute_type": get_compute_type(),
+        "cached_align_languages": get_cached_languages(),
+        "gpu_memory": get_gpu_memory_info()
     }
 
 
@@ -119,6 +121,18 @@ async def create_transcription(
     # 生成请求ID用于跟踪
     request_id = str(uuid.uuid4())[:8]
     start_time = time.time()
+    
+    # 记录请求开始时的 GPU 内存
+    start_gpu_memory = get_gpu_memory_info()
+    if start_gpu_memory:
+        logger.info(
+            "GPU memory at request start",
+            extra={
+                "event": "gpu_memory_start",
+                "request_id": request_id,
+                **start_gpu_memory
+            }
+        )
     
     try:
         # 使用新的验证函数验证音频文件
@@ -198,11 +212,11 @@ async def create_transcription(
             )
             
             try:
-                align_model, metadata = whisperx.load_align_model(language_code=transcribe_result["language"], device=device)
+                align_model, metadata = load_align_model(transcribe_result["language"])
                 logger.info(
-                    "Alignment model loaded",
+                    "Using alignment model",
                     extra={
-                        "event": "alignment_model_loaded",
+                        "event": "alignment_model_ready",
                         "request_id": request_id,
                         "language": transcribe_result["language"],
                         "device": device
@@ -485,6 +499,21 @@ async def create_transcription(
                         "temp_file_path": temp_file_path,
                         "error_type": type(cleanup_error).__name__,
                         "error_message": str(cleanup_error)
+                    }
+                )
+            
+            # 清理 GPU 缓存
+            clear_gpu_cache()
+            
+            # 记录请求结束时的 GPU 内存
+            end_gpu_memory = get_gpu_memory_info()
+            if end_gpu_memory:
+                logger.info(
+                    "GPU memory at request end",
+                    extra={
+                        "event": "gpu_memory_end",
+                        "request_id": request_id,
+                        **end_gpu_memory
                     }
                 )
             
