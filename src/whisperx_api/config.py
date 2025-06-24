@@ -6,6 +6,7 @@ WhisperX API 配置模块
 
 import os
 import torch
+import logging
 from dotenv import load_dotenv
 
 # 加载环境变量
@@ -19,6 +20,13 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 HF_TOKEN = os.getenv("HF_TOKEN")
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", "100"))  # MB
+
+# 配置日志系统
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL.upper()),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 def get_device():
     """获取计算设备"""

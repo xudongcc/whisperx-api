@@ -32,7 +32,7 @@ def load_whisper_model():
         load_time = time.time() - start_time
         
         logger.info(
-            "WhisperX model loaded successfully",
+            "Whisper model loaded successfully",
             extra={
                 "event": "model_loading_complete",
                 "model_type": "whisper",

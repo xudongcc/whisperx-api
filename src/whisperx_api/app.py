@@ -86,7 +86,7 @@ async def health_check():
     """健康检查"""
     return {
         "status": "healthy", 
-        "model_loaded": is_whisper_model_loaded(),
+        "whisper_model_loaded": is_whisper_model_loaded(),
         "diarization_model_loaded": is_diarize_model_loaded(),
         "hf_token_available": HF_TOKEN is not None,
         "device": device,
@@ -211,6 +211,8 @@ async def create_transcription(
                 }
             )
             
+            # 注释掉对齐部分代码以排查显存溢出问题
+            """
             try:
                 align_model, metadata = load_align_model(transcribe_result["language"])
                 logger.info(
@@ -268,6 +270,23 @@ async def create_transcription(
                 if "segments" not in transcribe_result:
                     transcribe_result["segments"] = []
                 align_result = transcribe_result
+            """
+            
+            # 暂时跳过对齐，直接使用转录结果
+            align_time = time.time() - align_start_time
+            logger.info(
+                "Skipping timestamp alignment for memory debugging",
+                extra={
+                    "event": "alignment_skipped",
+                    "request_id": request_id,
+                    "language": transcribe_result.get('language'),
+                    "segment_count": len(transcribe_result.get('segments', [])),
+                    "align_time_seconds": round(align_time, 2)
+                }
+            )
+            
+            # 使用原始转录结果作为对齐结果
+            align_result = transcribe_result
             
             # 说话人识别
             if params.enable_speaker_diarization:
