@@ -45,7 +45,6 @@ RUN uv sync --frozen --no-dev
 # 复制项目源码（源码变化最频繁，放在最后）
 COPY main.py ./
 COPY src/ ./src/
-COPY README.md ./
 
 # 暴露端口
 EXPOSE 8000
