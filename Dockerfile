@@ -1,17 +1,17 @@
 # =====================================
 # 生产环境构建
 # =====================================
-FROM python:3.11-slim
+FROM nvidia/cuda:12.9.0-runtime-ubuntu24.04
 
 # 设置环境变量
+ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV DEBIAN_FRONTEND=noninteractive
 
 # 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖
+# 安装系统依赖（这些依赖很少变化，放在前面利用缓存）
 RUN apt-get update && apt-get install -y \
     # 音频处理依赖
     ffmpeg \
@@ -29,26 +29,26 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# 安装 uv
+# 安装 uv（工具安装，很少变化）
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# 复制项目文件
-COPY pyproject.toml uv.lock README.md ./
-COPY main.py ./
-COPY config.py ./
+# 创建缓存目录（在安装依赖之前创建）
+RUN mkdir -p /root/.cache
+VOLUME /root/.cache
+
+# 复制项目依赖文件（只复制依赖文件，不复制源码）
+COPY pyproject.toml uv.lock ./
 
 # 安装 Python 依赖（使用 uv）
 RUN uv sync --frozen --no-dev
 
-# 创建必要的目录
-RUN mkdir -p /app/temp /app/logs
+# 复制项目源码（源码变化最频繁，放在最后）
+COPY main.py ./
+COPY src/ ./src/
+COPY README.md ./
 
 # 暴露端口
 EXPOSE 8000
-
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
 
 # 启动命令
 CMD ["uv", "run", "python", "main.py"] 

@@ -1,32 +1,14 @@
-version: "3.8"
-
 services:
   whisperx-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: whisperx-api
     ports:
       - "8000:8000"
     environment:
-      # HuggingFace Token (用于说话人识别)
-      # 请在 .env 文件中设置或直接在此处配置
-      HF_TOKEN: ${HF_TOKEN:-}
-
-      # 文件配置
-      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-100}
-
+      - HF_TOKEN=${HF_TOKEN}
     volumes:
-      # 可选：持久化模型缓存（如果需要频繁重建容器）
-      - ~/.cache:/home/whisperx/.cache
-
-      # 可选：挂载日志目录
-      - ./logs:/app/logs
-
-      # 可选：挂载临时文件目录
-      - ./temp:/app/temp
-
-    restart: unless-stopped
+      # 模型缓存卷 - 避免每次重新下载模型
+      - ~/.cache:/root/.cache
 
     # 健康检查
     healthcheck:
@@ -35,27 +17,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
-    # 资源限制
-    deploy:
-      resources:
-        limits:
-          memory: 8G
-        reservations:
-          memory: 4G
-
-    # 如果使用 CUDA
-    # runtime: nvidia
-    # environment:
-    #   NVIDIA_VISIBLE_DEVICES: all
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
-
-volumes:
-  whisperx_models:
-    driver: local
