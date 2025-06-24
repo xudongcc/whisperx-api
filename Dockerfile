@@ -22,18 +22,14 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     # Git（用于运行时下载模型）
     git \
-    # Python 3.12 和相关工具
-    python3.12 \
-    python3.12-dev \
-    python3.12-venv \
+    # Python 3.10 和相关工具（Ubuntu 22.04 默认版本）
+    python3 \
+    python3-dev \
+    python3-venv \
     python3-pip \
     # 清理工具
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
-
-# 创建 Python 3.12 的符号链接
-RUN ln -sf /usr/bin/python3.12 /usr/bin/python3 && \
-    ln -sf /usr/bin/python3.12 /usr/bin/python
 
 # 安装 uv（工具安装，很少变化）
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
@@ -45,8 +41,8 @@ VOLUME /root/.cache
 # 复制项目依赖文件（只复制依赖文件，不复制源码）
 COPY pyproject.toml uv.lock ./
 
-# 安装 Python 依赖（使用 uv，指定 Python 3.12）
-RUN uv sync --frozen --no-dev --python python3.12
+# 安装 Python 依赖（使用 uv，使用系统默认的 Python 3.10）
+RUN uv sync --frozen --no-dev
 
 # 复制项目源码（源码变化最频繁，放在最后）
 COPY main.py ./
