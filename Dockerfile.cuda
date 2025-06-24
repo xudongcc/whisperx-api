@@ -38,14 +38,13 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN mkdir -p /root/.cache
 VOLUME /root/.cache
 
-# 复制项目依赖文件（只复制依赖文件，不复制源码）
-COPY pyproject.toml ./
+# 复制项目依赖文件
+COPY pyproject.toml uv.lock ./
 
-# 安装 Python 依赖（使用 uv，使用系统默认的 Python 3.10）
-# 不使用 lock 文件，动态解析并安装 GPU 版本的 PyTorch
+# 安装 Python 依赖
 RUN uv sync --no-dev
 
-# 复制项目源码（源码变化最频繁，放在最后）
+# 复制项目源码
 COPY main.py ./
 COPY src/ ./src/
 

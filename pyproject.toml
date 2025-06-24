@@ -5,7 +5,7 @@ description = "WhisperX API compatible with OpenAI Whisper API"
 authors = [
     {name = "Xudong Huang", email = "me@huangxudong.com"}
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10,<3.11"
 dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
@@ -16,7 +16,6 @@ dependencies = [
     "python-multipart>=0.0.6",
     "aiofiles>=23.0.0",
     "python-dotenv>=1.0.0",
-    "python-json-logger>=2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -38,7 +37,7 @@ packages = ["."]
 
 [tool.black]
 line-length = 88
-target-version = ['py39']
+target-version = ['py310']
 
 [tool.isort]
 profile = "black"
