@@ -4,53 +4,16 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Virtual environments
-.env
-.venv
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
-.venv/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# uv
+.uv/
+uv.lock
 
 # IDE
 .vscode/
@@ -61,44 +24,50 @@ venv.bak/
 
 # OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-
-# Logs
-*.log
-logs/
 
 # Git
 .git/
 .gitignore
+
+# Documentation
+README.md
+docs/
+
+# Tests
+tests/
+pytest_cache/
+.coverage
+htmlcov/
 
 # Docker
 Dockerfile*
 docker-compose*.yml
 .dockerignore
 
-# Documentation
-docs/
-
-# Environment files
+# Misc
+*.log
 .env
-.env.local
-.env.development
-.env.test
-.env.production
+.env.*
 
-# Temporary files
-temp/
-tmp/
-*.tmp
-*.temp
+# PyInstaller
+*.manifest
+*.spec
 
-# Node modules (if any)
-node_modules/
+# Unit test / coverage reports
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Virtual environments
+.env.bak/
+venv.bak/
 
 # Model caches (will be downloaded in container)
 models/

@@ -39,10 +39,11 @@ RUN mkdir -p /root/.cache
 VOLUME /root/.cache
 
 # 复制项目依赖文件（只复制依赖文件，不复制源码）
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml ./
 
 # 安装 Python 依赖（使用 uv，使用系统默认的 Python 3.10）
-RUN uv sync --frozen --no-dev
+# 不使用 lock 文件，动态解析并安装 CPU 版本的 PyTorch
+RUN uv sync --no-dev --extra-index-url https://download.pytorch.org/whl/cpu
 
 # 复制项目源码（源码变化最频繁，放在最后）
 COPY main.py ./

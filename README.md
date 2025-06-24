@@ -260,10 +260,89 @@ uv run uvicorn app:app --reload
 
 ### Docker 部署
 
-```bash
-# 构建镜像
-docker build -t whisperx-api .
+项目提供了两个 Dockerfile 以支持不同的部署环境：
 
-# 运行容器
-docker run -p 8000:8000 --env-file .env whisperx-api
+### CPU 版本
+
+使用 `Dockerfile` 构建 CPU 优化版本：
+
+```bash
+# 构建 CPU 版本镜像
+docker build -t whisperx-api:cpu -f Dockerfile .
+
+# 运行 CPU 版本
+docker run -p 8000:8000 whisperx-api:cpu
+```
+
+**特点：**
+
+- 使用 CPU 版本的 PyTorch
+- 镜像大小更小（减少约 800MB）
+- 适合轻量级部署和开发环境
+
+### CUDA/GPU 版本
+
+使用 `Dockerfile.cuda` 构建 GPU 加速版本：
+
+```bash
+# 构建 CUDA 版本镜像
+docker build -t whisperx-api:cuda -f Dockerfile.cuda .
+
+# 运行 CUDA 版本（需要 NVIDIA Docker 支持）
+docker run --gpus all -p 8000:8000 whisperx-api:cuda
+```
+
+**特点：**
+
+- 使用 GPU 版本的 PyTorch
+- 包含 CUDA 12.2 和 cuDNN 8 支持
+- 显著提升处理速度
+- 适合生产环境和大规模部署
+
+## 依赖管理
+
+项目使用 `uv` 作为包管理工具，并采用动态依赖解析策略：
+
+- **CPU 版本**：自动从 PyTorch CPU 索引安装依赖
+- **CUDA 版本**：自动从 PyTorch 官方索引安装包含 CUDA 支持的依赖
+
+这种方式确保了每个环境都能获得正确的依赖版本，避免了 CPU/GPU 版本冲突。
+
+## 本地开发
+
+```bash
+# 安装依赖（会根据你的环境自动选择 CPU 或 GPU 版本）
+uv sync
+
+# 运行服务
+uv run python main.py
+```
+
+## API 使用
+
+服务启动后，可以通过以下方式使用：
+
+```bash
+curl -X POST "http://localhost:8000/v1/audio/transcriptions" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@audio.mp3" \
+  -F "model=whisper-1"
+```
+
+## 性能说明
+
+- **CPU 版本**：适合轻量级部署，处理速度取决于 CPU 性能
+- **GPU 版本**：推荐用于生产环境，可获得 5-10 倍的速度提升
+
+## 环境变量
+
+可以通过环境变量配置服务：
+
+```bash
+# CPU 版本强制禁用 CUDA
+CUDA_VISIBLE_DEVICES=""
+
+# GPU 版本指定使用的 GPU
+CUDA_VISIBLE_DEVICES="0"  # 使用第一个 GPU
+CUDA_VISIBLE_DEVICES="0,1"  # 使用多个 GPU
 ```
