@@ -1,19 +1,11 @@
 services:
   whisperx-api:
-    build: .
     container_name: whisperx-api
+    build: .
+    # image: ghcr.io/xudongcc/whisperx-api:latest
     ports:
       - "8000:8000"
     environment:
       - HF_TOKEN=${HF_TOKEN}
     volumes:
-      # 模型缓存卷 - 避免每次重新下载模型
       - ~/.cache:/root/.cache
-
-    # 健康检查
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
