@@ -162,14 +162,6 @@ def get_cached_languages():
     return list(global_align_models.keys())
 
 
-def clear_gpu_cache():
-    """清理 GPU 缓存"""
-    import torch
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        logger.debug("GPU cache cleared")
-
-
 def get_gpu_memory_info():
     """获取 GPU 内存使用信息"""
     import torch

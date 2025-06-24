@@ -18,7 +18,7 @@ from .config import (
 from .models import (
     TranscriptionFormParams, TranscriptionResponse, VerboseTranscriptionResponse
 )
-from .services import load_whisper_model, load_diarize_model, is_whisper_model_loaded, is_diarize_model_loaded, load_align_model, clear_gpu_cache, get_cached_languages, get_gpu_memory_info
+from .services import load_whisper_model, load_diarize_model, is_whisper_model_loaded, is_diarize_model_loaded, load_align_model, get_cached_languages
 from .validators import validate_transcription_params, validate_audio_file, validate_file_size
 
 logger = logging.getLogger(__name__)
@@ -91,8 +91,7 @@ async def health_check():
         "hf_token_available": HF_TOKEN is not None,
         "device": device,
         "compute_type": get_compute_type(),
-        "cached_align_languages": get_cached_languages(),
-        "gpu_memory": get_gpu_memory_info()
+        "cached_align_languages": get_cached_languages()
     }
 
 
@@ -121,18 +120,6 @@ async def create_transcription(
     # 生成请求ID用于跟踪
     request_id = str(uuid.uuid4())[:8]
     start_time = time.time()
-    
-    # 记录请求开始时的 GPU 内存
-    start_gpu_memory = get_gpu_memory_info()
-    if start_gpu_memory:
-        logger.info(
-            "GPU memory at request start",
-            extra={
-                "event": "gpu_memory_start",
-                "request_id": request_id,
-                **start_gpu_memory
-            }
-        )
     
     try:
         # 使用新的验证函数验证音频文件
@@ -211,8 +198,6 @@ async def create_transcription(
                 }
             )
             
-            # 注释掉对齐部分代码以排查显存溢出问题
-            """
             try:
                 align_model, metadata = load_align_model(transcribe_result["language"])
                 logger.info(
@@ -270,23 +255,6 @@ async def create_transcription(
                 if "segments" not in transcribe_result:
                     transcribe_result["segments"] = []
                 align_result = transcribe_result
-            """
-            
-            # 暂时跳过对齐，直接使用转录结果
-            align_time = time.time() - align_start_time
-            logger.info(
-                "Skipping timestamp alignment for memory debugging",
-                extra={
-                    "event": "alignment_skipped",
-                    "request_id": request_id,
-                    "language": transcribe_result.get('language'),
-                    "segment_count": len(transcribe_result.get('segments', [])),
-                    "align_time_seconds": round(align_time, 2)
-                }
-            )
-            
-            # 使用原始转录结果作为对齐结果
-            align_result = transcribe_result
             
             # 说话人识别
             if params.enable_speaker_diarization:
@@ -518,21 +486,6 @@ async def create_transcription(
                         "temp_file_path": temp_file_path,
                         "error_type": type(cleanup_error).__name__,
                         "error_message": str(cleanup_error)
-                    }
-                )
-            
-            # 清理 GPU 缓存
-            clear_gpu_cache()
-            
-            # 记录请求结束时的 GPU 内存
-            end_gpu_memory = get_gpu_memory_info()
-            if end_gpu_memory:
-                logger.info(
-                    "GPU memory at request end",
-                    extra={
-                        "event": "gpu_memory_end",
-                        "request_id": request_id,
-                        **end_gpu_memory
                     }
                 )
             
