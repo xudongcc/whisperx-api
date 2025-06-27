@@ -138,6 +138,12 @@ class TranscriptionRequest(BaseModel):
     )
 
 
+class SpeakerModel(BaseModel):
+    """说话人模型"""
+    id: str = Field(description="说话人标识")
+    embeddings: List[float] = Field(description="说话人语音特征向量")
+
+
 class SegmentModel(BaseModel):
     """音频片段模型"""
     id: int = Field(description="片段ID")
@@ -168,8 +174,14 @@ class TranscriptionResponse(BaseModel):
     language: str = Field(description="检测到的语言")
     duration: float = Field(description="音频总时长（秒）", ge=0)
     segments: List[SegmentModel] = Field(description="音频片段列表")
+    speakers: List[SpeakerModel] = Field(description="说话人信息列表", default_factory=list)
 
 
 class VerboseTranscriptionResponse(TranscriptionResponse):
     """详细转录响应模型"""
-    task: str = Field(default="transcribe", description="任务类型") 
+    task: str = Field(default="transcribe", description="任务类型")
+
+
+class EmbeddingsResponse(BaseModel):
+    """语音特征向量响应模型"""
+    embeddings: List[float] = Field(description="说话人语音特征向量") 

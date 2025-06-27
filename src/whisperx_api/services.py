@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # 全局变量存储模型
 global_whisper_model = None
-global_diarize_model = None
+global_diarize_pipeline = None
 global_align_models = {}  # 缓存不同语言的对齐模型
 
 
@@ -45,10 +45,10 @@ def load_whisper_model():
     return global_whisper_model
 
 
-def load_diarize_model():
+def load_diarize_pipeline():
     """加载说话人识别模型"""
-    global global_diarize_model
-    if global_diarize_model is None and HF_TOKEN:
+    global global_diarize_pipeline
+    if global_diarize_pipeline is None and HF_TOKEN:
         try:
             start_time = time.time()
             logger.info(
@@ -61,7 +61,7 @@ def load_diarize_model():
                 }
             )
             
-            global_diarize_model = whisperx.diarize.DiarizationPipeline(use_auth_token=HF_TOKEN, device=device)
+            global_diarize_pipeline = whisperx.diarize.DiarizationPipeline(use_auth_token=HF_TOKEN, device=device)
             load_time = time.time() - start_time
             
             logger.info(
@@ -74,6 +74,11 @@ def load_diarize_model():
                 }
             )
         except Exception as e:
+            # 显示具体的错误信息，便于调试
+            error_details = f"错误类型: {type(e).__name__}, 错误信息: {str(e)}"
+            logger.error(f"说话人识别模型加载失败 - {error_details} (设备: {device})")
+            
+            # 记录详细的错误信息到结构化日志（如果有JSON处理器）
             logger.error(
                 "Failed to load diarization model",
                 extra={
@@ -84,8 +89,8 @@ def load_diarize_model():
                     "error_message": str(e)
                 }
             )
-            global_diarize_model = None
-    return global_diarize_model
+            global_diarize_pipeline = None
+    return global_diarize_pipeline
 
 
 def get_whisper_model():
@@ -93,9 +98,9 @@ def get_whisper_model():
     return global_whisper_model
 
 
-def get_diarize_model():
+def get_diarize_pipeline():
     """获取说话人识别模型实例"""
-    return global_diarize_model
+    return global_diarize_pipeline
 
 
 def is_whisper_model_loaded():
@@ -103,9 +108,9 @@ def is_whisper_model_loaded():
     return global_whisper_model is not None
 
 
-def is_diarize_model_loaded():
+def is_diarize_pipeline_loaded():
     """检查说话人识别模型是否已加载"""
-    return global_diarize_model is not None
+    return global_diarize_pipeline is not None
 
 
 def load_align_model(language_code: str):
@@ -142,6 +147,11 @@ def load_align_model(language_code: str):
                 }
             )
         except Exception as e:
+            # 显示具体的错误信息，便于调试
+            error_details = f"错误类型: {type(e).__name__}, 错误信息: {str(e)}"
+            logger.error(f"对齐模型加载失败 - {error_details} (语言: {language_code}, 设备: {device})")
+            
+            # 记录详细的错误信息到结构化日志（如果有JSON处理器） 
             logger.error(
                 "Failed to load alignment model",
                 extra={
