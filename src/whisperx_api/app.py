@@ -541,7 +541,7 @@ async def create_transcription(
 
 
 @app.post("/v1/audio/embeddings", response_model=EmbeddingsResponse)
-async def get_audio_embeddings(
+async def create_embedding(
     file: UploadFile = File(..., description="要获取语音特征的音频文件")
 ):
     """

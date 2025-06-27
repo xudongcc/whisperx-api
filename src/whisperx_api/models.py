@@ -141,7 +141,7 @@ class TranscriptionRequest(BaseModel):
 class SpeakerModel(BaseModel):
     """说话人模型"""
     id: str = Field(description="说话人标识")
-    embeddings: List[float] = Field(description="说话人语音特征向量")
+    embedding: List[float] = Field(description="说话人语音特征向量")
 
 
 class SegmentModel(BaseModel):
@@ -184,4 +184,4 @@ class VerboseTranscriptionResponse(TranscriptionResponse):
 
 class EmbeddingsResponse(BaseModel):
     """语音特征向量响应模型"""
-    embeddings: List[float] = Field(description="说话人语音特征向量") 
+    embedding: List[float] = Field(description="说话人语音特征向量") 
