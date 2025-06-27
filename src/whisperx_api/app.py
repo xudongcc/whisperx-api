@@ -333,7 +333,7 @@ async def create_transcription(
                                 if speaker_id in speakers:
                                     diarization_speakers.append({
                                         "id": speaker_id,
-                                        "embeddings": embedding.tolist() if hasattr(embedding, 'tolist') else embedding
+                                        "embedding": embedding.tolist() if hasattr(embedding, 'tolist') else embedding
                                     })
                         
                         logger.info(
@@ -653,7 +653,7 @@ async def get_audio_embeddings(
                 )
                 
                 return EmbeddingsResponse(
-                    embeddings=embeddings_list
+                    embedding=embeddings_list
                 )
                 
             except Exception as diarize_error:
