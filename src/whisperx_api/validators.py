@@ -17,7 +17,7 @@ async def validate_transcription_params(
     enable_speaker_diarization: bool = Form(True),
     min_speakers: Optional[int] = Form(None),
     max_speakers: Optional[int] = Form(None),
-    chunk_size: int = Form(6)
+    chunk_size: int = Form(30)
 ) -> TranscriptionFormParams:
     """验证转录请求的表单参数"""
     try:

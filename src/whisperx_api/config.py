@@ -19,7 +19,7 @@ MODEL_NAME = "large-v3-turbo"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 HF_TOKEN = os.getenv("HF_TOKEN")
-MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", "100"))  # MB
+MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", "1024"))  # MB
 
 # 配置日志系统
 logging.basicConfig(
